@@ -1,0 +1,32 @@
+名字: Pull & Save OpenClaw Images
+
+在:
+  workflow_dispatch:
+
+工作:
+  pull-and-save:
+    runs-on: ubuntu-latest
+步骤:
+      - 名字: 拉开爪（原件）
+跑: Docker pull ghcr.io/openclaw/openclaw:最近的
+
+      - 名字: 将 OpenClaw你呢
+跑: Docker save ghcr.io/openclaw/openclaw:最新-o openclaw. tar
+
+      - 名字: 拉开爪（中文）
+跑: Docker pull ghcr.io/1186258278/openclaw-zh:最近的
+
+      - 名字: 将开爪你在吗
+跑: Docker save ghcr.io/1186258278/openclaw-zh:最新-o openclaw-zh. tar
+
+      - 名字: 上传原始图片神器
+用途；使用；用法: actions/upload-artifact@v4
+与:
+名字: openclaw-docker-image
+路径: 哟penclaw.tar
+
+      - 名字: 上传中文图片神器
+用途；使用；用法: actions/upload-artifact@v4
+与:
+名字: openclaw-zh-docker-image
+路径: openclaw-zh.tar
