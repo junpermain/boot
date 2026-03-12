@@ -28,5 +28,6 @@ jobs:
       - name: Upload Chinese Image Artifact
         uses: actions/upload-artifact@v4
         with:
+         node-version: 22
           name: openclaw-zh-docker-image
           path: openclaw-zh.tar
