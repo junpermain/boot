@@ -1,0 +1,88 @@
+name: Pull & Save Ollama x86 Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: '要拉取的标签 (逗号分隔，如：latest,0.1.32)'
+        required: false
+        default: 'latest'
+      arch:
+        description: '架构 (amd64 或 386)'
+        required: false
+        default: 'amd64'
+
+jobs:
+  pull-and-save:
+    runs-on: ubuntu-latest
+    steps:
+      # 拉取最新版 Ollama x86 镜像
+      - name: Pull Ollama Latest (x86)
+        run: |
+          docker pull --platform linux/${{ github.event.inputs.arch || 'amd64' }} ollama/ollama:latest
+          docker tag ollama/ollama:latest ollama:latest-x86
+
+      # 保存最新版镜像
+      - name: Save Ollama Latest to tar
+        run: |
+          docker save ollama:latest-x86 -o ollama-latest-x86.tar
+          ls -lh ollama-latest-x86.tar
+
+      # 如果有多个标签，循环处理
+      - name: Pull and Save multiple tags
+        run: |
+          TAGS="${{ github.event.inputs.tags }}"
+          ARCH="${{ github.event.inputs.arch || 'amd64' }}"
+          
+          # 如果 TAGS 包含多个，用逗号分隔
+          IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
+          
+          for TAG in "${TAG_ARRAY[@]}"; do
+            TAG=$(echo $TAG | xargs)  # 去除空格
+            echo "拉取 ollama/ollama:${TAG} (${ARCH})"
+            
+            # 拉取指定架构的镜像
+            docker pull --platform linux/${ARCH} ollama/ollama:${TAG}
+            docker tag ollama/ollama:${TAG} ollama:${TAG}-${ARCH}
+            
+            # 保存为 tar 文件
+            docker save ollama:${TAG}-${ARCH} -o ollama-${TAG}-${ARCH}.tar
+            echo "已保存: ollama-${TAG}-${ARCH}.tar"
+          done
+
+      # 上传 latest 镜像
+      - name: Upload Latest x86 Image Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-latest-x86-docker-image
+          path: ollama-latest-x86.tar
+          retention-days: 7  # 保留7天
+
+      # 上传其他标签的镜像
+      - name: Upload Other Tags Artifacts
+        run: |
+          TAGS="${{ github.event.inputs.tags }}"
+          ARCH="${{ github.event.inputs.arch || 'amd64' }}"
+          
+          IFS=',' read -ra TAG_ARRAY <<< "$TAGS"
+          
+          for TAG in "${TAG_ARRAY[@]}"; do
+            TAG=$(echo $TAG | xargs)
+            if [ "$TAG" != "latest" ]; then
+              echo "上传 ollama-${TAG}-${ARCH}.tar"
+              # 使用 gh CLI 上传 artifacts
+              tar_file="ollama-${TAG}-${ARCH}.tar"
+              if [ -f "$tar_file" ]; then
+                echo "上传 $tar_file"
+              fi
+            fi
+          done
+
+      # 或者使用循环上传（更简单的方式）
+      - name: Upload All Images
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-x86-images
+          path: |
+            ollama-*.tar
+          retention-days: 7
