@@ -82,7 +82,6 @@ jobs:
       - name: Upload All Images
         uses: actions/upload-artifact@v4
         with:
-         node-version: 22
           name: ollama-x86-images
           path: |
             ollama-*.tar
