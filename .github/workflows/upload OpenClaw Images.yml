@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull OpenClaw (Original)
-        run: docker pull ghcr.io/openclaw/openclaw:latest
+        run: docker pull coollabsio/openclaw:latest
 
       - name: Save OpenClaw Original to tar
         run: docker save ghcr.io/openclaw/openclaw:latest -o openclaw.tar
@@ -20,13 +20,13 @@ jobs:
         run: docker save ghcr.io/1186258278/openclaw-zh:latest -o openclaw-zh.tar
 
       - name: Upload Original Image Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: openclaw-docker-image
           path: openclaw.tar
 
       - name: Upload Chinese Image Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: openclaw-zh-docker-image
           path: openclaw-zh.tar
